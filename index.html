@@ -494,13 +494,7 @@ textarea.form-input { resize:vertical; min-height:60px; }
   <div class="tab-content" id="tabBody">
     <div class="card">
       <button class="btn btn-primary btn-block" id="btnSyncHealth" style="margin-bottom:10px">♥ Sync from Apple Health</button>
-      <div class="form-row" style="justify-content:center">
-        <select class="form-select" id="syncDays" style="max-width:180px">
-          <option value="7">Last 7 days</option>
-          <option value="14">Last 14 days</option>
-          <option value="30">Last 30 days</option>
-        </select>
-      </div>
+      <p style="font-size:11px;color:var(--text3);text-align:center">Syncs latest readings. For historical backfill, edit Limits in the Shortcut.</p>
     </div>
     <div class="metric-grid" id="metricGrid"></div>
     <div class="card">
@@ -1353,8 +1347,7 @@ document.getElementById('btnSaveBody').addEventListener('click', async () => {
 });
 
 document.getElementById('btnSyncHealth').addEventListener('click', () => {
-  const days = document.getElementById('syncDays').value;
-  window.location.href = `shortcuts://run-shortcut?name=Fitness%20Sync&input=text&text=${days}`;
+  window.location.href = 'shortcuts://run-shortcut?name=Fitness%20Sync';
 });
 
 // --- EXPORT TAB ---
