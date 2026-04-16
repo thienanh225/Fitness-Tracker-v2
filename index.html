@@ -670,7 +670,12 @@ function getDateForDay(dayIndex, offset = 0) {
   const mon = getWeekStart(offset);
   const d = new Date(mon);
   d.setDate(mon.getDate() + dayIndex);
-  return d.toISOString().substring(0, 10);
+  return localDate(d);
+}
+
+function localDate(d) {
+  const dt = d || new Date();
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
 }
 
 // --- TABS ---
@@ -793,10 +798,10 @@ function renderDayGrid() {
         BW:'var(--amber)', Leg:'var(--teal)', Run:'var(--coral)', Sport:'var(--pink)' };
       return `<div class="day-dot" style="background:${colors[a]}"></div>`;
     }).join('');
-    const isToday = dateStr === new Date().toISOString().substring(0,10);
+    const isToday = dateStr === localDate();
     grid.innerHTML += `<div class="day-col ${i === selectedDayIndex ? 'selected' : ''}" data-day="${i}">
       <div class="day-name">${d}</div>
-      <div class="day-num" style="${isToday ? 'color:var(--green)' : ''}">${new Date(dateStr).getDate()}</div>
+      <div class="day-num" style="${isToday ? 'color:var(--green)' : ''}">${parseInt(dateStr.split('-')[2])}</div>
       <div class="day-dots">${dots}</div>
     </div>`;
   });
@@ -1023,7 +1028,7 @@ async function loadClimbTab() {
     for (let i = 0; i <= 10; i++) gradeSelect.innerHTML += `<option value="V${i}">V${i}</option>`;
   }
   // Default date
-  document.getElementById('climbDate').valueAsDate = new Date();
+  document.getElementById('climbDate').value = localDate();
   // Populate location
   renderGymDropdown();
   // Load history
@@ -1284,7 +1289,7 @@ async function showRunDetail(run) {
 
 // --- BODY TAB ---
 async function loadBodyTab() {
-  document.getElementById('bodyDate').valueAsDate = new Date();
+  document.getElementById('bodyDate').value = localDate();
   const measurements = await api('getMeasurements', { limit: 100 });
   if (measurements && Array.isArray(measurements)) {
     localStorage.setItem('ft_body', JSON.stringify(measurements));
@@ -1347,7 +1352,7 @@ document.getElementById('btnSaveBody').addEventListener('click', async () => {
 });
 
 document.getElementById('btnSyncHealth').addEventListener('click', () => {
-  window.location.href = 'shortcuts://run-shortcut?name=Fitness%20Sync%20v2';
+  window.location.href = 'shortcuts://run-shortcut?name=Fitness%20Sync';
 });
 
 // --- EXPORT TAB ---
