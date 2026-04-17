@@ -414,7 +414,10 @@ textarea.form-input { resize:vertical; min-height:60px; }
     <div class="card">
       <div class="card-title">Log Session</div>
       <div class="form-row">
-        <input class="form-input" id="climbDate" type="date">
+        <input class="form-input" id="climbDate" type="date" style="flex:1.2">
+        <input class="form-input" id="climbTime" type="time" style="flex:0.9">
+      </div>
+      <div class="form-row">
         <input class="form-input" id="climbDuration" type="number" placeholder="Min" style="flex:0.5">
         <select class="form-select" id="climbLocation"></select>
       </div>
@@ -500,7 +503,10 @@ textarea.form-input { resize:vertical; min-height:60px; }
     <div class="card">
       <div class="card-title">Manual Entry</div>
       <div class="form-row">
-        <input class="form-input" id="bodyDate" type="date" style="flex:0.8">
+        <input class="form-input" id="bodyDate" type="date" style="flex:1">
+        <input class="form-input" id="bodyTime" type="time" style="flex:0.8">
+      </div>
+      <div class="form-row">
         <select class="form-select" id="bodyMetric">
           <option value="Weight">Weight (kg)</option>
           <option value="BodyFat">Body fat %</option>
@@ -676,6 +682,11 @@ function getDateForDay(dayIndex, offset = 0) {
 function localDate(d) {
   const dt = d || new Date();
   return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+}
+
+function localTime(d) {
+  const dt = d || new Date();
+  return String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
 }
 
 // --- TABS ---
@@ -1027,8 +1038,9 @@ async function loadClimbTab() {
     gradeSelect.innerHTML = '';
     for (let i = 0; i <= 10; i++) gradeSelect.innerHTML += `<option value="V${i}">V${i}</option>`;
   }
-  // Default date
+  // Default date + time
   document.getElementById('climbDate').value = localDate();
+  document.getElementById('climbTime').value = localTime();
   // Populate location
   renderGymDropdown();
   // Load history
@@ -1112,6 +1124,7 @@ document.getElementById('btnSaveClimb').addEventListener('click', async () => {
   if (currentRoutes.length === 0) return alert('Add at least one route');
   const params = {
     date: document.getElementById('climbDate').value,
+    time: document.getElementById('climbTime').value,
     duration: document.getElementById('climbDuration').value,
     location: document.getElementById('climbLocation').value,
     routes: JSON.stringify(currentRoutes)
@@ -1149,7 +1162,7 @@ function renderClimbHistory(sessions) {
     div.className = 'session-card';
     div.innerHTML = `
       <div class="session-header">
-        <span class="session-date">${s.Date}</span>
+        <span class="session-date">${s.Date}${s.Time ? ' · ' + s.Time : ''}</span>
         <span class="session-meta">${s.Location || ''} · ${s.Duration || ''}min · ${routes.length} routes</span>
       </div>
       <div class="session-routes">${pills}</div>
@@ -1166,6 +1179,7 @@ function renderClimbHistory(sessions) {
     div.querySelector('.btn-edit').addEventListener('click', () => {
       climbEditRowIndex = s._rowIndex;
       document.getElementById('climbDate').value = s.Date;
+      document.getElementById('climbTime').value = s.Time || '';
       document.getElementById('climbDuration').value = s.Duration;
       document.getElementById('climbLocation').value = s.Location;
       currentRoutes = routes;
@@ -1290,6 +1304,7 @@ async function showRunDetail(run) {
 // --- BODY TAB ---
 async function loadBodyTab() {
   document.getElementById('bodyDate').value = localDate();
+  document.getElementById('bodyTime').value = localTime();
   const measurements = await api('getMeasurements', { limit: 100 });
   if (measurements && Array.isArray(measurements)) {
     localStorage.setItem('ft_body', JSON.stringify(measurements));
@@ -1324,8 +1339,9 @@ function renderBodyHistory(data) {
     const vals = ALL_METRICS.map(m => r[m.id] ? `${m.label}: ${r[m.id]}` : '').filter(Boolean).join(' · ');
     if (!vals) return;
     const sourceIcon = r.Source === 'AppleHealth' ? '♥ ' : '';
+    const timeStr = r.Time ? ' · ' + r.Time : '';
     container.innerHTML += `<div class="detail-entry">
-      <div class="detail-text"><strong>${sourceIcon}${r.Date}</strong><br><span style="font-size:12px;color:var(--text3)">${vals}</span></div>
+      <div class="detail-text"><strong>${sourceIcon}${r.Date}${timeStr}</strong><br><span style="font-size:12px;color:var(--text3)">${vals}</span></div>
       <span class="delete-x" data-row="${r._rowIndex}">×</span>
     </div>`;
   });
@@ -1343,6 +1359,7 @@ document.getElementById('btnSaveBody').addEventListener('click', async () => {
   if (!value) return;
   const params = {
     Date: document.getElementById('bodyDate').value,
+    Time: document.getElementById('bodyTime').value,
     [metric]: parseFloat(value),
     Source: 'Manual'
   };
